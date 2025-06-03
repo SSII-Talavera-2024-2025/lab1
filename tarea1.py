@@ -65,3 +65,17 @@ def load_graph_from_graphml(file_path):
         parser.parse(f)
     return handler.nodes, handler.graph
 nodes, adjacency_list = load_graph_from_graphml("CR_Capital.xml")
+
+# Cargar grafo desde fichero GraphML
+nodes, adjacency_list = load_graph_from_graphml("CR_Capital.xml")
+
+# Guardar la salida en un archivo en lugar de imprimir por pantalla
+with open("pruebaT1.txt", "w", encoding="utf-8") as f:
+    f.write("Todos los nodos:\n")
+    for node_id, data in nodes.items():
+        f.write(f"Nodo {node_id}: {data}\n")
+
+    f.write("\nTodas las conexiones:\n")
+    for source, edges in adjacency_list.items():
+        for target, length in edges:
+            f.write(f"{source} -> {target} (longitud: {length})\n")
