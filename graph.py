@@ -4,7 +4,7 @@ from node import Node
 from edge import Edge
 from utils import safe_float
 
-class GraphHandler(handler.ContentHandler):
+class GraphHandler(handler.ContentHandler): 
     def __init__(self):
         super().__init__()
         self.graph = defaultdict(list)
