@@ -6,7 +6,7 @@ def main():
     nodes, adjacency_list = load_graph_from_graphml(input_file)
 
     # ✅ Creamos un estado inicial real
-    nodo_inicial = "1042"
+    nodo_inicial = "2"
     nodos_a_visitar = ["11", "40", "50", "300"]  # Usa nodos reales del grafo si puedes
 
     estado = Estado(nodo_inicial, nodos_a_visitar)

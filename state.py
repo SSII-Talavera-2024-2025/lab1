@@ -24,15 +24,18 @@ class Estado:
 def sucesores(estado, graph):
     current = estado.current_node
     remaining = estado.nodes_to_visit.copy()
-    adjacents = sorted([target for target, _ in graph.get(current, [])])
+
+    vecinos = graph.get(current, [])
+    # ✅ Orden numérico correcto de los nodos destino
+    vecinos_ordenados = sorted(vecinos, key=lambda x: int(x[0]))
+
     successors = []
 
-    for neighbor in adjacents:
+    for neighbor, cost in vecinos_ordenados:
         new_remaining = [n for n in remaining if n != neighbor]
         new_estado = Estado(neighbor, new_remaining)
         action = f"{current}->{neighbor}"
-        # Obtener el coste (longitud) de la arista
-        cost = next((length for tgt, length in graph[current] if tgt == neighbor), 1.0)
         successors.append((action, new_estado, cost))
 
     return successors
+
