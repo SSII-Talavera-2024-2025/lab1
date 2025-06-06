@@ -14,7 +14,7 @@ def main():
         f.write("\nTodas las conexiones:\n")
         for source, edges in adjacency_list.items():
             for target, length in edges:
-                f.write(f"{source} -> {target} (longitud: {length:.2f})\n")
+                f.write(f"{source} -> {target} (longitud: {length})\n")
 
     print(f"Resultado guardado en {output_file}")
 
