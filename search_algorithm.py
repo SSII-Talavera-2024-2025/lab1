@@ -23,7 +23,7 @@ class Nodo:
         return list(reversed(camino))
 
     def __str__(self):
-        return f"[{self.id}][{self.costo},{self.estado.id()[-6:]},{self.padre.id if self.padre else None},{self.accion},{self.profundidad},{self.heuristica},{self.valor}]"
+        return f"[{self.id}][{self.costo:.2f},{self.estado.id()[-6:]},{self.padre.id if self.padre else None},{self.accion},{self.profundidad},{self.heuristica},{self.valor}]"
 
 class Frontera:
     def __init__(self):
