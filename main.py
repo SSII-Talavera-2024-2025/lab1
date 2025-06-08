@@ -17,7 +17,7 @@ if __name__ == "__main__":
         f.write("\nLISTA DE ADYACENCIA:\n")
         for node, neighbors in adjacency_list.items():
             f.write(f"{node}: {neighbors}\n")
-
+  # imprimir resultados
 
 
 
