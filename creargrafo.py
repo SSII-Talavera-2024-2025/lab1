@@ -77,34 +77,28 @@ class GraphMLHandler(xml.sax.ContentHandler):
         elif name == 'node':
             # Se cierra un nodo: extraemos sus atributos y lo añadimos a la colección de nodos
             self.in_node = False
+            # Extraer los atributos necesarios del nodo
             node_id = self.node_attrs.get('id')
             osmid = self.node_attrs.get('osmid_original', '')
-            try:
-                # Intentamos convertir latitud y longitud a float
-                lon = float(self.node_attrs.get('lon', ''))
-                lat = float(self.node_attrs.get('lat', ''))
-                # Guardamos el nodo en el diccionario con su osmid y coordenadas
-                self.nodes[node_id] = {'osmid': osmid, 'lon': lon, 'lat': lat}
-                # Inicializamos lista vacía de adyacencia para este nodo
-                self.adjacency_list[node_id] = []
-            except ValueError:
-                # Si no se pueden convertir coordenadas, ignoramos el nodo
-                pass
+            lon = self.node_attrs.get('lon', '')
+            lat = self.node_attrs.get('lat', '')
+            self.nodes[node_id] = {'osmid': osmid, 'lon': lon, 'lat': lat}
+            # Inicializar la lista de adyacencias para este nodo
+            self.adjacency_list[node_id] = []
 
         elif name == 'edge':
             # Se cierra una arista: extraemos atributos y la añadimos a la lista de aristas
+            # Finalizar procesamiento de una arista
             self.in_edge = False
             source = self.edge_attrs.get('source')
             target = self.edge_attrs.get('target')
-            try:
-                length = float(self.edge_attrs.get('length', '0'))
-            except ValueError:
-                length = 0.0
-            # Añadimos la arista con origen, destino y longitud
+            length = self.edge_attrs.get('length', '0')
             self.edges.append({'source': source, 'target': target, 'length': length})
-            # Actualizamos la lista de adyacencia añadiendo el nodo destino y longitud a la lista del nodo origen
+            # Añadir a la lista de adyacencias del nodo fuente
             if source in self.adjacency_list:
-                self.adjacency_list[source].append((target, length))
+             self.adjacency_list[source].append((target, length))
+            else:
+             self.adjacency_list[source] = [(target, length)]
 
 def parse_graphml(file_path):
     # Función que crea el parser SAX, asigna el manejador personalizado y parsea el archivo
