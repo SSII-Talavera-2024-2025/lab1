@@ -1,116 +1,80 @@
-import xml.sax
+import xml.sax  # Importamos el módulo SAX para analizar XML basado en eventos
 
-class GraphMLHandler(xml.sax.ContentHandler):
-    def __init__(self):
-        # Elemento XML actual que se está procesando
-        self.current_element = ''
-        # Mapa que relaciona IDs de keys con nombres de atributos
-        self.key_map = {}
-        # Diccionarios temporales para atributos del nodo y la arista actuales
-        self.node_attrs = {}
-        self.edge_attrs = {}
-        # Diccionario final de nodos, lista de aristas y lista de adyacencia
-        self.nodes = {}
-        self.edges = []
-        self.adjacency_list = {}
-        # Variables de control para datos que se están leyendo
-        self.data_key = ''
-        self.node_id = ''
-        self.edge_id = ''
-        self.in_node = False
-        self.in_edge = False
-        self.in_data = False
-        self.data_value = ''
+class GraphMLHandler(xml.sax.ContentHandler):  # Clase manejadora que define cómo procesar los eventos del XML
+    def __init__(self):  # Constructor de la clase
+        self.current_element = ''  # Elemento XML actual que se está procesando
+        self.key_map = {}  # Diccionario para mapear keys a nombres de atributos
+        self.node_attrs = {}  # Atributos temporales del nodo actual
+        self.edge_attrs = {}  # Atributos temporales de la arista actual
+        self.nodes = {}  # Diccionario final de nodos
+        self.edges = []  # Lista final de aristas
+        self.adjacency_list = {}  # Lista de adyacencias: diccionario con ID de nodo y sus vecinos
+        self.data_key = ''  # Identificador del dato que se está leyendo
+        self.node_id = ''  # ID del nodo actual
+        self.edge_id = ''  # ID de la arista actual
+        self.in_node = False  # Flag para saber si estamos dentro de un nodo
+        self.in_edge = False  # Flag para saber si estamos dentro de una arista
+        self.in_data = False  # Flag para saber si estamos dentro de un dato <data>
+        self.data_value = ''  # Valor temporal del contenido del <data>
 
-    def startElement(self, name, attrs):
-        # Método llamado al encontrar el inicio de un elemento XML
-        self.current_element = name
-
-        if name == 'key':
-            # Guardamos la relación entre el id de la key y el nombre del atributo
+    def startElement(self, name, attrs):  # Método llamado al inicio de cada elemento XML
+        self.current_element = name  # Guardamos el nombre del elemento actual
+        if name == 'key':  # Si es una etiqueta <key>, mapeamos su id a un nombre de atributo
             key_id = attrs.get('id')
             attr_name = attrs.get('attr.name')
             if key_id and attr_name:
                 self.key_map[key_id] = attr_name
-
-        elif name == 'node':
-            # Estamos entrando en un nodo: inicializamos variables
+        elif name == 'node':  # Si empieza un nodo
             self.in_node = True
-            self.node_id = attrs.get('id')
-            self.node_attrs = {'id': self.node_id}
-
-        elif name == 'edge':
-            # Estamos entrando en una arista: guardamos id, origen y destino
+            self.node_id = attrs.get('id')  # Guardamos el ID del nodo
+            self.node_attrs = {'id': self.node_id}  # Inicializamos atributos del nodo
+        elif name == 'edge':  # Si empieza una arista
             self.in_edge = True
-            self.edge_id = attrs.get('id')
+            self.edge_id = attrs.get('id')  # Guardamos el ID de la arista
             source = attrs.get('source')
             target = attrs.get('target')
             self.edge_attrs = {'id': self.edge_id, 'source': source, 'target': target}
-
-        elif name == 'data':
-            # Estamos dentro de un elemento <data>: guardamos el key y preparamos para leer valor
+        elif name == 'data':  # Si empieza un dato dentro de <node> o <edge>
             self.in_data = True
-            self.data_key = attrs.get('key')
-            self.data_value = ''
+            self.data_key = attrs.get('key')  # Guardamos qué key representa el dato
+            self.data_value = ''  # Reiniciamos el contenido
 
-    def characters(self, content):
-        # Método que se llama cuando se encuentran caracteres de texto dentro de un elemento
+    def characters(self, content):  # Método llamado al leer texto dentro de un elemento <data>
         if self.in_data:
-            # Acumulamos el contenido del dato
-            self.data_value += content
+            self.data_value += content  # Acumulamos texto del dato (puede venir en fragmentos)
 
-    def endElement(self, name):
-        # Método llamado al cerrar un elemento XML
-        if name == 'data':
-            # Finaliza la lectura de un dato: guardamos el valor en el atributo correspondiente
+    def endElement(self, name):  # Método llamado al final de un elemento XML
+        if name == 'data':  # Terminó un bloque <data>
             self.in_data = False
-            attr_name = self.key_map.get(self.data_key, self.data_key)
+            attr_name = self.key_map.get(self.data_key, self.data_key)  # Convertimos key en nombre legible
             value = self.data_value.strip()
-            if self.in_node:
-                # Si estamos dentro de un nodo, asignamos el atributo al nodo
+            if self.in_node:  # Si estamos procesando un nodo
                 self.node_attrs[attr_name] = value
-            elif self.in_edge:
-                # Si estamos dentro de una arista, asignamos el atributo a la arista
+            elif self.in_edge:  # Si es una arista
                 self.edge_attrs[attr_name] = value
-            self.data_value = ''
-
-        elif name == 'node':
-            # Se cierra un nodo: extraemos sus atributos y lo añadimos a la colección de nodos
+            self.data_value = ''  # Limpiamos el contenido leído
+        elif name == 'node':  # Terminamos de procesar un nodo
             self.in_node = False
             node_id = self.node_attrs.get('id')
             osmid = self.node_attrs.get('osmid_original', '')
-            try:
-                # Intentamos convertir latitud y longitud a float
-                lon = float(self.node_attrs.get('lon', ''))
-                lat = float(self.node_attrs.get('lat', ''))
-                # Guardamos el nodo en el diccionario con su osmid y coordenadas
-                self.nodes[node_id] = {'osmid': osmid, 'lon': lon, 'lat': lat}
-                # Inicializamos lista vacía de adyacencia para este nodo
-                self.adjacency_list[node_id] = []
-            except ValueError:
-                # Si no se pueden convertir coordenadas, ignoramos el nodo
-                pass
-
-        elif name == 'edge':
-            # Se cierra una arista: extraemos atributos y la añadimos a la lista de aristas
+            lon = self.node_attrs.get('lon', '')
+            lat = self.node_attrs.get('lat', '')
+            self.nodes[node_id] = {'osmid': osmid, 'lon': lon, 'lat': lat}  # Guardamos info del nodo
+            self.adjacency_list[node_id] = []  # Inicializamos su lista de vecinos
+        elif name == 'edge':  # Terminamos de procesar una arista
             self.in_edge = False
             source = self.edge_attrs.get('source')
             target = self.edge_attrs.get('target')
-            try:
-                length = float(self.edge_attrs.get('length', '0'))
-            except ValueError:
-                length = 0.0
-            # Añadimos la arista con origen, destino y longitud
-            self.edges.append({'source': source, 'target': target, 'length': length})
-            # Actualizamos la lista de adyacencia añadiendo el nodo destino y longitud a la lista del nodo origen
-            if source in self.adjacency_list:
-                self.adjacency_list[source].append((target, length))
+            length = self.edge_attrs.get('length', '0')  # Usamos 0 si no hay longitud
+            self.edges.append({'source': source, 'target': target, 'length': length})  # Añadimos a la lista de aristas
+            if source in self.adjacency_list:  # Comprobamos si el nodo fuente ya tiene adyacencias
+                self.adjacency_list[source].append((target, float(length)))  # Añadimos destino con coste
+            else:
+                self.adjacency_list[source] = [(target, float(length))]  # Creamos nueva lista de adyacencia
 
-def parse_graphml(file_path):
-    # Función que crea el parser SAX, asigna el manejador personalizado y parsea el archivo
-    parser = xml.sax.make_parser()
-    handler = GraphMLHandler()
-    parser.setContentHandler(handler)
-    parser.parse(file_path)
-    # Devuelve nodos, aristas y lista de adyacencia extraídos
-    return handler.nodes, handler.edges, handler.adjacency_list
+def parse_graphml(file_path):  # Función para parsear el fichero .graphml
+    parser = xml.sax.make_parser()  # Creamos el parser SAX
+    handler = GraphMLHandler()  # Instanciamos el manejador personalizado
+    parser.setContentHandler(handler)  # Asignamos el manejador al parser
+    parser.parse(file_path)  # Procesamos el fichero
+    return handler.nodes, handler.edges, handler.adjacency_list  # Devolvemos resultado
