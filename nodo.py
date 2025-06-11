@@ -1,26 +1,28 @@
 class Nodo:
-    contador_id = -1  # contador global para asignar ID único a cada nodo
+    contador_id = 0  # Contador estático para IDs únicos
 
-    def __init__(self, estado, padre=None, accion=None, profundidad=0, costo=0.0, heuristica=0.0, estrategia='anchura'):
+    def __init__(self, estado, padre=None, accion=None, costo=0.0, profundidad=0, heuristica=0.0, valor=0.0):
+        self.ID = Nodo.contador_id
         Nodo.contador_id += 1
-        self.id = Nodo.contador_id  # ID único incremental
-        self.padre = padre          # Nodo padre
-        self.estado = estado        # Estado asociado
-        self.accion = accion        # Acción que generó este nodo
-        self.profundidad = profundidad
+        
+        self.estado = estado
+        self.padre = padre
+        self.accion = accion  # Aquí accion parece ser el nodo destino (ID)
         self.costo = costo
+        self.profundidad = profundidad
         self.heuristica = heuristica
-        self.valor = self.calcula_valor(estrategia)
+        self.valor = valor
+        
+        # Asignar un ID incremental único
+    def estado_hash(self):
+        # Devuelve los últimos 6 caracteres del hash MD5 del estado
+        return self.estado.id_estado()[-6:]
+    
+    def __str__(self):
+        padre_id = self.padre.ID if self.padre is not None else 'None' 
 
-    def calcula_valor(self, estrategia):
-        if estrategia == 'anchura':
-            return self.profundidad
-        elif estrategia == 'profundidad':
-            return 1 / (self.profundidad + 1)
-        elif estrategia == 'costo_uniforme':
-            return self.costo
-        else:
-            return self.costo  # valor por defecto
+        return (f"[{self.ID}][{self.costo:.2f},{self.estado},{self.estado_hash()},{padre_id},{self.accion},"
+                f"{self.profundidad},{self.heuristica},{self.valor:.2f}]")
 
     def camino(self):
         nodo, camino = self, []
@@ -30,12 +32,8 @@ class Nodo:
         camino.reverse()
         return camino
 
-    def __str__(self):
-        estado_id = self.estado.id_estado()[-6:]
-        id_padre = self.padre.id if self.padre else None
-        return f"[{self.id}][{self.costo},{estado_id},{id_padre},{self.accion},{self.profundidad},{self.heuristica},{self.valor}]"
-
     def __lt__(self, otro):
         if self.valor == otro.valor:
-            return self.id < otro.id
+            return self.ID < otro.ID
         return self.valor < otro.valor
+

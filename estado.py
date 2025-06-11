@@ -3,7 +3,7 @@ import hashlib  # Módulo para generar hashes MD5 únicos, útil para identifica
 class Estado:
     def __init__(self, nodo_actual, lugares_por_visitar):
         self.nodo_actual = nodo_actual  # Nodo en el que se encuentra actualmente el agente
-        self.lugares_por_visitar = sorted(lugares_por_visitar)  # Lista ordenada de lugares pendientes de visitar
+        self.lugares_por_visitar = list(lugares_por_visitar)  # Lista ordenada de lugares pendientes de visitar
 
     def __str__(self):
         # Devuelve una representación en cadena del estado, sin espacios
