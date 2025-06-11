@@ -1,7 +1,0 @@
-Estado inicial: (70,['300', '40', '50', '68'])
-ID del estado inicial: 3f2b8e233a5a5dee45c5dc752ba38a0b
-El estado inicial aún no cumple el objetivo (quedan nodos por visitar).
-
-Sucesores:
-70->68: (68,['300', '40', '50']) con costo 57.044134462755686
-70->82: (82,['300', '40', '50', '68']) con costo 40.896405499551676
