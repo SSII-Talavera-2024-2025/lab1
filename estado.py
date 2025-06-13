@@ -1,43 +1,40 @@
-import hashlib  # Módulo para generar hashes MD5 únicos, útil para identificar estados
+# estado.py - Define un estado en la búsqueda (nodo actual y nodos por visitar)
+
+import hashlib
+from creargrafo import Grafo
 
 class Estado:
-    def __init__(self, nodo_actual, lugares_por_visitar):
-        self.nodo_actual = nodo_actual  # Nodo en el que se encuentra actualmente el agente
-        self.lugares_por_visitar = list(lugares_por_visitar)  # Lista ordenada de lugares pendientes de visitar
+    def __init__(self, nodo_actual, nodos_por_visitar):
+        self.nodo_actual = nodo_actual
+        self.nodos_por_visitar = sorted(nodos_por_visitar)  # Ordenamos para que sea consistente
+        # Generar un identificador único con MD5
+        cadena_estado = f"({self.nodo_actual},{self.nodos_por_visitar})".replace(" ", "")
+        self.id_estado = hashlib.md5(cadena_estado.encode()).hexdigest()
+        self.representacion = cadena_estado
 
     def __str__(self):
-        # Devuelve una representación en cadena del estado, sin espacios
-        # Por ejemplo: (A,['B','C'])
-        return f"({self.nodo_actual},{self.lugares_por_visitar})"
+        return self.representacion
 
-    def id_estado(self):
-        # Genera un identificador único MD5 a partir del string del estado
-        # Útil para evitar visitar estados repetidos en algoritmos de búsqueda
-        estado_str = str(self)  # Convierte el estado a string
-        return hashlib.md5(estado_str.encode()).hexdigest()  # Genera y devuelve el hash MD5
+    def obtener_sucesores(self, grafo):
+        """Devuelve los estados sucesores basados en los nodos vecinos."""
+        sucesores = []
+        vecinos = grafo.adyacencias[int(self.nodo_actual)]
+        ids_vecinos = sorted(vecinos.keys())
 
-    def sucesores(self, adjacency_list):
-        # Genera los estados sucesores a partir de los vecinos del nodo actual
-        sucesores = []  # Lista donde guardaremos los sucesores
-        vecinos = adjacency_list.get(self.nodo_actual, [])  # Obtenemos los vecinos del nodo actual
+        for id_vecino in ids_vecinos:
+            for indice_arista in vecinos[id_vecino]:
+                # Copiar la lista de nodos por visitar
+                nuevos_nodos_por_visitar = self.nodos_por_visitar.copy()
+                # Si el vecino es un nodo objetivo, lo quitamos de la lista
+                if id_vecino in nuevos_nodos_por_visitar:
+                    nuevos_nodos_por_visitar.remove(id_vecino)
+                # Crear un nuevo estado
+                nuevo_estado = Estado(id_vecino, nuevos_nodos_por_visitar)
+                # Obtener la distancia de la arista
+                distancia_arista = grafo.aristas[indice_arista].distancia
+                # Añadir sucesor: [nodo_actual, nuevo_estado, costo]
+                sucesores.append([self.nodo_actual, nuevo_estado, distancia_arista])
 
-        # Recorremos los vecinos ordenados por ID de destino
-        for vecino, costo in sorted(vecinos, key=lambda x: x[0]):
-            # Si el vecino es uno de los lugares por visitar, lo eliminamos en el nuevo estado
-            if vecino in self.lugares_por_visitar:
-                nuevos_lugares = [n for n in self.lugares_por_visitar if n != vecino]
-            else:
-                nuevos_lugares = list(self.lugares_por_visitar)  # Si no, mantenemos la lista igual
-
-            # Creamos un nuevo estado a partir del vecino visitado
-            nuevo_estado = Estado(vecino, nuevos_lugares)
-            accion = f"{self.nodo_actual}->{vecino}"  # Acción realizada (por ejemplo, "A->B")
-            sucesores.append((accion, nuevo_estado, costo))  # Añadimos tupla con acción, estado nuevo y coste
-
-        return sucesores  # Devolvemos todos los sucesores posibles
-
-    def es_objetivo(self):
-        # Comprueba si el estado es objetivo: no quedan lugares por visitar
-        return len(self.lugares_por_visitar) == 0
+        return sucesores
 
     
