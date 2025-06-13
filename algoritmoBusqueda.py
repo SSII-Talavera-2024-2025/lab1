@@ -14,7 +14,12 @@ def realizar_busqueda(planificador, estrategia, limite_profundidad, tipo_heurist
     id_nodo = 0
     objetivo_encontrado = False
 
-    
+    # Calcular la heurística inicial
+    heuristica_inicial = 0
+    if tipo_heuristica == "euclidea" and estrategia != "A":
+        heuristica_inicial = heuristica_euclidea(planificador, -1, planificador.estado_inicial)
+    elif tipo_heuristica == "arco_minimo" and estrategia != "A":
+        heuristica_inicial = heuristica_arco_minimo(planificador.grafo, planificador.estado_inicial)
 
     # Nodo raíz ficticio
     raiz = NodoBusqueda(None, None, None, 0, 0, 0, 0, None)
