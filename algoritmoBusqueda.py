@@ -1,67 +1,80 @@
-from frontera import Frontera
-from nodo import Nodo
-from conjuntoestadosvisitados import ConjuntoEstadosVisitados
+#!/usr/bin/python3
+# busqueda.py - Implementa el algoritmo de búsqueda A*
 
-def calcular_valor(estrategia, profundidad, costo, heuristica):
-    if estrategia == 'anchura':
-        return profundidad
-    elif estrategia == 'profundidad':
-        return 1 / (profundidad + 1)
-    elif estrategia == 'costo_uniforme':
-        return costo
-    #elif estrategia == 'a_estrella':
-        #return costo + heuristica
-    else:
-        return 0
+import heapq
+from arbol_busqueda import NodoBusqueda
+from utilidades import calcular_valor, heuristica_euclidea, heuristica_arco_minimo
 
-def AlgoritmoBusqueda(problema, estrategia, profundidad_maxima):
-    Nodo.contador_id = 0  # Reinicia contador de IDs (si tu clase Nodo lo usa)
+def realizar_busqueda(planificador, estrategia, limite_profundidad, tipo_heuristica):
+    # Inicializar estructuras principales
+    camino = []              # Lista que almacenará los nodos recorridos hasta encontrar la solución
+    frontera = []            # Cola de prioridad (heap) con los nodos por expandir
+    heapq.heapify(frontera)  # Inicializa la frontera como un heap
+    explorados = {}          # Diccionario para registrar estados ya visitados
+    id_nodo = 0              # Contador de ID para los nodos del árbol de búsqueda
+    objetivo_encontrado = False  # Flag para detener la búsqueda si se encuentra la solución
 
-    frontera = Frontera()
-    visitados = ConjuntoEstadosVisitados()
+    # Calcular la heurística inicial según el tipo elegido, si no se usa A*
+    heuristica_inicial = 0
+    if tipo_heuristica == "euclidea" and estrategia != "a":
+        heuristica_inicial = heuristica_euclidea(planificador, -1, planificador.estado_inicial)
+    elif tipo_heuristica == "arco_minimo" and estrategia != "a":
+        heuristica_inicial = heuristica_arco_minimo(planificador.grafo, planificador.estado_inicial)
 
-    heuristica_inicial = problema.heuristica_func(problema.estado_inicial)
-    valor_inicial = calcular_valor(estrategia, 0, 0.0, heuristica_inicial)
-
-    nodo_inicial = Nodo(
-        estado=problema.estado_inicial,
-        padre=None,
-        accion=None,
-        profundidad=0,
-        costo=0.0,
-        heuristica=heuristica_inicial,
-        valor=valor_inicial
+    # Crear nodo raíz ficticio (sin estado) para facilitar la referencia en el árbol
+    raiz = NodoBusqueda(None, None, None, 0, 0, 0, 0, None)
+    
+    # Crear nodo inicial con el estado inicial del problema
+    nodo_inicial = NodoBusqueda(
+        id_nodo,
+        raiz,
+        planificador.estado_inicial,
+        calcular_valor(estrategia, None, 0, 0, heuristica_inicial),  # f(n)
+        0,  # profundidad
+        0,  # coste acumulado
+        heuristica_inicial,  # h(n)
+        None  # acción
     )
+    heapq.heappush(frontera, nodo_inicial)  # Insertar en la frontera
+    id_nodo += 1
 
-    frontera.insertar(nodo_inicial)
-    visitados.agregar(problema.estado_inicial)
+    # Bucle principal de búsqueda
+    while frontera and not objetivo_encontrado:
+        actual = heapq.heappop(frontera)  # Extrae el nodo con menor valor (según la estrategia)
+        camino.append(actual)             # Guarda el nodo expandido
 
-    while not frontera.esta_vacia():
-        nodo = frontera.extraer()
+        # Verificar si el nodo actual contiene un estado objetivo
+        if planificador.es_objetivo(actual.estado):
+            objetivo_encontrado = True
+        else:
+            # Expandir el nodo solo si no ha superado la profundidad máxima y no se ha explorado ya
+            if actual.profundidad <= limite_profundidad and actual.estado.id_estado not in explorados:
+                explorados[actual.estado.id_estado] = actual.estado
+                sucesores = actual.estado.obtener_sucesores(planificador.grafo)
 
-        if problema.es_objetivo_func(nodo.estado):
-            return nodo.camino()
+                # Crear nodos para cada sucesor del estado actual
+                for nodo_origen, nuevo_estado, costo in sucesores:
+                    h = 0
+                    if tipo_heuristica == "euclidea":
+                        h = heuristica_euclidea(planificador, heuristica_inicial, nuevo_estado)
+                    elif tipo_heuristica == "arco_minimo":
+                        h = heuristica_arco_minimo(planificador.grafo, nuevo_estado)
+                    
+                    accion = f"{nodo_origen}->{nuevo_estado.nodo_actual}"  # Descripción de la acción tomada
 
-        if nodo.profundidad < profundidad_maxima:
-            sucesores = nodo.estado.sucesores(problema.adjacency_list)
-            for accion, estado_suc, costo_suc in sucesores:
-                if not visitados.contiene(estado_suc):
-                    nueva_profundidad = nodo.profundidad + 1
-                    nuevo_costo = nodo.costo + float(costo_suc)
-                    nueva_heuristica = problema.heuristica_func(estado_suc)
-                    nuevo_valor = calcular_valor(estrategia, nueva_profundidad, nuevo_costo, nueva_heuristica)
-
-                    nodo_hijo = Nodo(
-                        estado=estado_suc,
-                        padre=nodo,
-                        accion=accion,
-                        profundidad=nueva_profundidad,
-                        costo=nuevo_costo,
-                        heuristica=nueva_heuristica,
-                        valor=nuevo_valor
+                    # Crear el nuevo nodo del árbol de búsqueda
+                    nuevo_nodo = NodoBusqueda(
+                        id_nodo,
+                        actual,
+                        nuevo_estado,
+                        calcular_valor(estrategia, None, actual.profundidad + 1, actual.costo + float(costo), h),
+                        actual.profundidad + 1,
+                        actual.costo + float(costo),
+                        h,
+                        accion
                     )
+                    id_nodo += 1
+                    heapq.heappush(frontera, nuevo_nodo)  # Insertar en la frontera
 
-                    frontera.insertar(nodo_hijo)
-                    visitados.agregar(estado_suc)
-
-    return None
+    # Si se encuentra el objetivo, se reconstruye el camino. Si no, devuelve una lista vacía.
+    return actual.obtener_camino() if objetivo_encontrado else []

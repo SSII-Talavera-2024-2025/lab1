@@ -1,55 +1,43 @@
-from creargrafo import parse_graphml
-from estado import Estado
+#!/usr/bin/python3
+# -*- coding: UTF-8 -*-
+# Autor: Daniel Tomas Gallego - Implementación personal para resolver un problema de búsqueda en grafos
+# Fecha: Junio 2025
+
 from problema import Problema
-from algoritmoBusqueda import AlgoritmoBusqueda
+from algoritmoBusqueda import realizar_busqueda
 
-def es_objetivo(estado):
-    """Determina si el estado es objetivo."""
-    return estado.es_objetivo()
+def validar_estrategia(estrategia):
+    # Asegura que la estrategia elegida esté entre las permitidas
+    estrategias_validas = {'bfs', 'dfs', 'coste_uniforme', 'A'}
+    if estrategia not in estrategias_validas:
+        raise ValueError(f"Estrategia no válida: '{estrategia}'. Debe ser una de: {', '.join(estrategias_validas)}")
 
-def heuristica_ejemplo(estado):
-    """
-    Calcula una heurística simple.
-    En este caso, el número de lugares por visitar.
-    """
-    return len(estado.lugares_por_visitar)
+def validar_heuristica(tipo_heuristica):
+    # Validamos que la heurística esté entre las esperadas
+    heuristicas_validas = {'euclidea', 'arco_minimo'}
+    if tipo_heuristica not in heuristicas_validas:
+        raise ValueError(f"Tipo de heurística no válido: '{tipo_heuristica}'. Debe ser una de: {', '.join(heuristicas_validas)}")
 
 if __name__ == "__main__":
-    # Carga del grafo desde el archivo .graphml
-    nodes, edges, adjacency_list = parse_graphml('CR_Capital.graphml')
+    # Configuración del problema
+    archivo_grafo = 'CAMPUS_VIRTUAL.graphxml'
+    nodo_inicio = '1259'
+    nodos_objetivo = [56, 1207, 379]
+    estrategia = 'bfs'  # soporta bfs, dfs, coste_uniforme Y A
+    tipo_heuristica = 'arco_minimo'  # Puede ser 'euclidea' o 'arco_minimo'
+    limite_profundidad = 600
 
-    # Definir el estado inicial (ejemplo: nodo '863' con objetivos)
-    estado_inicial = Estado('1259', ['56', '1207', '379'])
-    print("Estado inicial:", estado_inicial)
-    print("ID del estado inicial:", estado_inicial.id_estado()) 
+    # Validaciones antes de ejecutar
+    validar_estrategia(estrategia)
+    validar_heuristica(tipo_heuristica)
 
-    # Verificación de si el estado ya cumple el objetivo
-    if estado_inicial.es_objetivo():
-        print("El estado inicial ya cumple el objetivo (todos los nodos visitados).")   
+    # Creamos el problema y lanzamos la búsqueda
+    planificador = Problema(archivo_grafo, nodo_inicio, nodos_objetivo)
+    camino_solucion = realizar_busqueda(planificador, estrategia, limite_profundidad, tipo_heuristica)
+
+    # Mostramos el camino si se encontró uno
+    if not camino_solucion:
+        print("No encontré un camino válido :(")
     else:
-        print("El estado inicial aún no cumple el objetivo (quedan nodos por visitar).")
-
-    # Definición del problema
-    problema = Problema(
-        estado_inicial=estado_inicial,
-        adjacency_list=adjacency_list,
-        es_objetivo_func=es_objetivo,
-        heuristica_func=heuristica_ejemplo
-    )
-
-    # Selección de la estrategia de búsqueda
-    estrategia = 'costo_uniforme'  # 'anchura', 'profundidad', 'a_estrella'
-
-    # Límite de profundidad
-    profundidad_maxima = 600    
-
-    # Ejecución del algoritmo de búsqueda
-    solucion = AlgoritmoBusqueda(problema, estrategia, profundidad_maxima)
-
-    # Presentación de resultados
-    if solucion:
-        print("\nCamino solución encontrado:")
-        for nodo in solucion:
-                print(nodo)
-    else:
-        print("\nNo se encontró una solución dentro de la profundidad máxima permitida.")
+        for nodo in camino_solucion:
+            print(nodo)
