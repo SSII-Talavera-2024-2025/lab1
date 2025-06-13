@@ -1,9 +1,20 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-# Autor: [Tu Nombre] - Implementación personal para resolver un problema de búsqueda en grafos
+# Autor: Daniel Tomas Gallego - Implementación personal para resolver un problema de búsqueda en grafos
 # Fecha: Junio 2025
+
 from problema import Problema
 from algoritmoBusqueda import realizar_busqueda
+
+def validar_estrategia(estrategia):
+    estrategias_validas = {'bfs', 'dfs', 'coste_uniforme', 'a'}
+    if estrategia not in estrategias_validas:
+        raise ValueError(f"Estrategia no válida: '{estrategia}'. Debe ser una de: {', '.join(estrategias_validas)}")
+
+def validar_heuristica(tipo_heuristica):
+    heuristicas_validas = {'euclidea', 'arco_minimo'}
+    if tipo_heuristica not in heuristicas_validas:
+        raise ValueError(f"Tipo de heurística no válido: '{tipo_heuristica}'. Debe ser una de: {', '.join(heuristicas_validas)}")
 
 if __name__ == "__main__":
     # Configuración del problema
@@ -13,6 +24,10 @@ if __name__ == "__main__":
     estrategia = 'dfs'  # Usamos A, pero también soporta bfs, dfs, coste_uniforme
     tipo_heuristica = 'euclidea'  # Puede ser 'euclidea' o 'arco_minimo'
     limite_profundidad = 1000
+
+    # Validaciones
+    validar_estrategia(estrategia)
+    validar_heuristica(tipo_heuristica)
 
     # Crear el planificador y buscar la solución
     planificador = Problema(archivo_grafo, nodo_inicio, nodos_objetivo)
