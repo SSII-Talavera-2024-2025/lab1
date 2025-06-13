@@ -5,12 +5,12 @@ import sys
 
 class Grafo(xml.sax.ContentHandler):
     def __init__(self):
-        self.dirigido = ""  # Si el grafo es dirigido o no
-        self.distancia_minima = sys.float_info.max  # Distancia mínima entre nodos
-        self.nodos = []  # Lista de nodos
-        self.aristas = []  # Lista de aristas
-        self.adyacencias = []  # Lista de adyacencias
-        self.clave_actual = ""  # Clave del elemento XML actual
+        self.dirigido = ""  # Indica si el grafo es dirigido o no
+        self.distancia_minima = sys.float_info.max  # Guardamos la distancia más corta
+        self.nodos = []         # Lista de objetos Nodo
+        self.aristas = []       # Lista de objetos Arista
+        self.adyacencias = []   # Matriz de adyacencias como diccionario por nodo
+        self.clave_actual = ""  # Etiqueta XML 'data' que estamos procesando
 
     def startElement(self, tag, attrs):
         if tag == "graph":
@@ -21,6 +21,7 @@ class Grafo(xml.sax.ContentHandler):
             self.nodos[-1].id = int(attrs["id"])
         
         if tag == "edge":
+            # Solo creamos adyacencias al encontrar la primera arista
             if not self.aristas:
                 self.adyacencias = [{} for _ in range(len(self.nodos))]
             self.aristas.append(Arista())
@@ -28,9 +29,10 @@ class Grafo(xml.sax.ContentHandler):
             arista.id = int(attrs["id"])
             arista.origen = int(attrs["source"])
             arista.destino = int(attrs["target"])
-            # Añadir a la lista de adyacencias
-            destino = arista.destino
+            
+            # Añadimos la arista al mapa de adyacencias
             origen = arista.origen
+            destino = arista.destino
             if destino in self.adyacencias[origen]:
                 self.adyacencias[origen][destino].append(len(self.aristas) - 1)
             else:
@@ -44,6 +46,7 @@ class Grafo(xml.sax.ContentHandler):
             self.clave_actual = ""
 
     def characters(self, content):
+        # Guardamos coordenadas y distancia según la clave XML
         if self.clave_actual == "d5":
             self.nodos[-1].x = content
         elif self.clave_actual == "d6":

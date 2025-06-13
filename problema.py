@@ -3,24 +3,25 @@ import xml.sax
 from creargrafo import Grafo
 from estado import Estado
 
-
 class Problema:
     def __init__(self, archivo_xml, nodo_inicio, nodos_objetivo):
         self.archivo_xml = archivo_xml
         self.estado_inicial = Estado(nodo_inicio, nodos_objetivo)
         self.grafo = Grafo()
         
-        # Parsear el archivo XML para armar el grafo
+        # Parseamos el XML para construir el grafo
         parser = xml.sax.make_parser()
         parser.setFeature(xml.sax.handler.feature_namespaces, 0)
         parser.setContentHandler(self.grafo)
         parser.parse(self.archivo_xml)
 
+        # Calculamos la distancia mínima entre nodos objetivo (D1)
         self.D1 = self.calcular_D1(nodos_objetivo)
+
     def calcular_D1(self, nodos_objetivo):
-        # Calcular la distancia euclídea mínima entre nodos objetivo
+        # Distancia euclídea mínima entre pares de nodos objetivo
         if len(nodos_objetivo) < 2:
-            return float('inf')
+            return float('inf')  # Si hay menos de 2, no tiene sentido calcular
         distancia_minima = float('inf')
         for i in range(len(nodos_objetivo)):
             for j in range(i + 1, len(nodos_objetivo)):
@@ -31,5 +32,5 @@ class Problema:
         return distancia_minima
     
     def es_objetivo(self, estado):
-        # Comprobar si ya visitamos todos los nodos objetivo
+        # Verifica si ya visitamos todos los nodos objetivo
         return len(estado.nodos_por_visitar) == 0

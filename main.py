@@ -7,11 +7,13 @@ from problema import Problema
 from algoritmoBusqueda import realizar_busqueda
 
 def validar_estrategia(estrategia):
+    # Asegura que la estrategia elegida esté entre las permitidas
     estrategias_validas = {'bfs', 'dfs', 'coste_uniforme', 'a'}
     if estrategia not in estrategias_validas:
         raise ValueError(f"Estrategia no válida: '{estrategia}'. Debe ser una de: {', '.join(estrategias_validas)}")
 
 def validar_heuristica(tipo_heuristica):
+    # Validamos que la heurística esté entre las esperadas
     heuristicas_validas = {'euclidea', 'arco_minimo'}
     if tipo_heuristica not in heuristicas_validas:
         raise ValueError(f"Tipo de heurística no válido: '{tipo_heuristica}'. Debe ser una de: {', '.join(heuristicas_validas)}")
@@ -25,15 +27,15 @@ if __name__ == "__main__":
     tipo_heuristica = 'euclidea'  # Puede ser 'euclidea' o 'arco_minimo'
     limite_profundidad = 1000
 
-    # Validaciones
+    # Validaciones antes de ejecutar
     validar_estrategia(estrategia)
     validar_heuristica(tipo_heuristica)
 
-    # Crear el planificador y buscar la solución
+    # Creamos el problema y lanzamos la búsqueda
     planificador = Problema(archivo_grafo, nodo_inicio, nodos_objetivo)
     camino_solucion = realizar_busqueda(planificador, estrategia, limite_profundidad, tipo_heuristica)
 
-    # Mostrar el resultado
+    # Mostramos el camino si se encontró uno
     if not camino_solucion:
         print("No encontré un camino válido :(")
     else:
