@@ -23,8 +23,8 @@ if __name__ == "__main__":
     archivo_grafo = 'CAMPUS_VIRTUAL.graphxml'
     nodo_inicio = '1259'
     nodos_objetivo = [56, 1207, 379]
-    estrategia = 'bfs'  # soporta bfs, dfs, coste_uniforme Y A
-    tipo_heuristica = 'arco_minimo'  # Puede ser 'euclidea' o 'arco_minimo'
+    estrategia = 'coste_uniforme'  # soporta bfs, dfs, coste_uniforme Y A
+    tipo_heuristica = 'euclidea'  # Puede ser 'euclidea' o 'arco_minimo'
     limite_profundidad = 600
 
     # Validaciones antes de ejecutar
