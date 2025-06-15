@@ -21,11 +21,11 @@ def validar_heuristica(tipo_heuristica):
 if __name__ == "__main__":
     # Configuración del problema
     archivo_grafo = 'CAMPUS_VIRTUAL.graphxml'
-    nodo_inicio = '1259'
-    nodos_objetivo = [56, 1207, 379]
-    estrategia = 'coste_uniforme'  # soporta bfs, dfs, coste_uniforme Y A
-    tipo_heuristica = 'euclidea'  # Puede ser 'euclidea' o 'arco_minimo'
-    limite_profundidad = 600
+    nodo_inicio = '911'
+    nodos_objetivo = [630, 937, 425]
+    estrategia = 'dfs'  # soporta bfs, dfs, coste_uniforme Y A
+    tipo_heuristica = 'arco_minimo'  # Puede ser 'euclidea' o 'arco_minimo'
+    limite_profundidad = 1000
 
     # Validaciones antes de ejecutar
     validar_estrategia(estrategia)
